@@ -14,3 +14,36 @@ select author, title, price
 from book
 where (price - (select min(price) from book)) <= 150
 order by price asc;
+
+/* 3 задание (Вывести информацию (автора, книгу и количество) о тех книгах, количество экземпляров которых в таблице book не дублируется.) */
+
+select author, title, amount 
+from book
+where amount in (
+     SELECT amount
+    FROM book
+    GROUP BY amount
+    HAVING COUNT(amount) = 1
+
+    
+)
+
+/* 4 задание (Вывести информацию о книгах(автор, название, цена), цена которых меньше самой большой из минимальных цен, вычисленных для каждого автора.) */
+
+select author, title, price
+from  book
+Where price < ANY (
+    select min(price)
+    from book
+    group by author
+)
+
+/* 5 задание (Посчитать сколько и каких экземпляров книг нужно заказать поставщикам, чтобы на складе стало одинаковое количество экземпляров каждой книги, равное значению самого большего количества экземпляров одной книги на складе. Вывести название книги, ее автора, текущее количество экземпляров на складе и количество заказываемых экземпляров книг. Последнему столбцу присвоить имя Заказ. В результат не включать книги, которые заказывать не нужно.) */
+
+select title, author, amount,
+       (select max(amount)
+         from book
+        )-amount as Заказ
+from book
+having Заказ > 0;
+
