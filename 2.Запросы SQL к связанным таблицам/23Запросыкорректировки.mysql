@@ -1,0 +1,85 @@
+/* 1 задание(Для книг, которые уже есть на складе (в таблице book), но по другой цене, чем в поставке (supply),  необходимо в таблице book увеличить количество на значение, указанное в поставке,  и пересчитать цену. А в таблице  supply обнулить количество этих книг.) */
+
+UPDATE book b
+     INNER JOIN author a ON a.author_id = b.author_id
+     INNER JOIN supply s ON b.title = s.title 
+                         AND s.author = a.name_author
+                         AND b.price<>s.price
+SET b.amount = b.amount + s.amount,
+    b.price = (b.price* b.amount + s.price* s.amount)/ (b.amount+ s.amount), 
+    s.amount = 0 ; 
+
+UPDATE book b
+     INNER JOIN author a ON a.author_id = b.author_id
+     INNER JOIN supply s ON b.title = s.title 
+                         AND s.author = a.name_author
+SET b.amount = b.amount + s.amount,
+    b.price = (b.price* b.amount + s.price* s.amount)/ (b.amount+ s.amount), 
+    s.amount = 0 
+WHERE b.price <> s.price ;
+
+SELECT * FROM book;
+SELECT * FROM supply;
+
+/* 2 задание(Включить новых авторов в таблицу author с помощью запроса на добавление, а затем вывести все данные из таблицы author.  Новыми считаются авторы, которые есть в таблице supply, но нет в таблице author.) */
+
+INSERT INTO author (name_author)
+SELECT supply.author
+    FROM supply
+    LEFT JOIN author on supply.author = author.name_author
+WHERE name_author is NULL; 
+    SElECT * FROM author;
+    
+/* 3 задание(Добавить новые книги из таблицы supply в таблицу book на основе сформированного выше запроса. Затем вывести для просмотра таблицу book) */
+
+INSERT INTO book (book.title, book.author_id, book.price, book.amount)
+SELECT supply.title, author.author_id, supply.price, supply.amount FROM supply
+LEFT JOIN book ON book_id = supply_id 
+INNER JOIN author ON supply.author = author.name_author
+WHERE supply.amount <> 0;
+
+/* 4 задание( Занести для книги «Стихотворения и поэмы» Лермонтова жанр «Поэзия», а для книги «Остров сокровищ» Стивенсона - «Приключения». (Использовать два запроса).) */
+
+UPDATE book
+SET genre_id = 2  
+WHERE book_id = 10;
+UPDATE book
+SET genre_id = 3 
+WHERE book_id = 11;
+SELECT * FROM book;
+
+/* 5 задание (Удалить всех авторов и все их книги, общее количество книг которых меньше 20.) */
+
+DELETE FROM author
+WHERE author_id IN( 
+            SELECT author_id 
+            FROM book
+            GROUP BY author_id
+            HAVING SUM(amount) <= 20
+            );
+
+SELECT * FROM author;
+SELECT * FROM book;
+
+/* 6 задание(Удалить все жанры, к которым относится меньше 4-х книг. В таблице book для этих жанров установить значение Null.) */
+
+delete from genre
+where genre_id in (
+    select genre_id 
+    from book
+    group by genre_id
+    having count(book_id) < 4
+);
+select * from book
+
+/* 7 задание(Удалить всех авторов, которые пишут в жанре "Поэзия". Из таблицы book удалить все книги этих авторов. В запросе для отбора авторов использовать полное название жанра, а не его id.) */
+
+DELETE FROM author
+USING
+     author
+     INNER JOIN book ON author.author_id = book.author_id
+     INNER JOIN genre ON genre.genre_id = book.genre_id     
+WHERE name_genre = 'Поэзия';
+
+SELECT * FROM author;
+SELECT * FROM book;	
