@@ -1,0 +1,28 @@
+/*1 завдание(Включить нового человека в таблицу с клиентами. Его имя Попов Илья, его email popov@test, проживает он в Москве.) */
+
+INSERT INTO  client (name_client, city_id, email)
+SELECT 'Попов Илья', city_id, 'popov@test'
+FROM city WHERE name_city = 'Москва';
+
+
+/*2 завдание(Создать новый заказ для Попова Ильи. Его комментарий для заказа: «Связаться со мной по вопросу доставки».) */
+
+INSERT INTO buy (buy_description, client_id)
+SELECT 'Связаться со мной по вопросу доставки', client_id FROM client WHERE name_client = 'Попов Илья';
+SELECT * FROM buy;
+
+/*3 завдание(В таблицу buy_book добавить заказ с номером 5. Этот заказ должен содержать книгу Пастернака «Лирика» в количестве двух экземпляров и книгу Булгакова «Белая гвардия» в одном экземпляре.) */
+
+INSERT INTO buy_book (buy_id, book_id, amount)
+SELECT 5, book_id, 2 FROM book, author
+WHERE name_author LIKE 'Пастернак%' AND title='Лирика';
+
+INSERT INTO buy_book (buy_id, book_id, amount)
+SELECT 5, book_id, 1 FROM book, author
+WHERE name_author LIKE 'Булгаков%' AND title='Белая гвардия';
+
+/*4 завдание(Количество тех книг на складе, которые были включены в заказ с номером 5, уменьшить на то количество, которое в заказе с номером 5  указано.) */
+
+update book as b inner join buy_book as bb using(book_id)
+set b.amount = b.amount - bb.amount 
+where bb.buy_id = 5;
