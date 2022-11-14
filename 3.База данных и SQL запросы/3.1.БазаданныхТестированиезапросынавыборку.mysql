@@ -1,0 +1,41 @@
+/* 1 задание(Вывести студентов, которые сдавали дисциплину «Основы баз данных», указать дату попытки и результат. Информацию вывести по убыванию результатов тестирования.) */
+
+SELECT name_student, date_attempt, result
+FROM student
+    INNER JOIN attempt USING(student_id)
+    INNER JOIN subject USING(subject_id)
+WHERE name_subject = 'Основы баз данных'
+ORDER BY result DESC
+
+/* 2 задание(Вывести, сколько попыток сделали студенты по каждой дисциплине, а также средний результат попыток, который округлить до 2 знаков после запятой. Под результатом попытки понимается процент правильных ответов на вопросы теста, который занесен в столбец result.  В результат включить название дисциплины, а также вычисляемые столбцы Количество и Среднее. Информацию вывести по убыванию средних результатов.) */
+
+SELECT name_subject, 
+       COUNT(attempt_id) AS Количество,
+       ROUND(AVG(result), 2) AS Среднее
+FROM subject
+       LEFT JOIN attempt USING(subject_id)
+GROUP BY name_subject
+ORDER BY Среднее DESC
+
+/* 3 задание(Вывести студентов (различных студентов), имеющих максимальные результаты попыток. Информацию отсортировать в алфавитном порядке по фамилии студента.) */
+
+SELECT name_student, result
+FROM student
+    INNER JOIN attempt USING(student_id)
+WHERE result = (
+         SELECT MAX(result) 
+         FROM attempt
+      )
+ORDER BY name_student;
+
+/* 4 задание(Если студент совершал несколько попыток по одной и той же дисциплине, то вывести разницу в днях между первой и последней попыткой. В результат включить фамилию и имя студента, название дисциплины и вычисляемый столбец Интервал. Информацию вывести по возрастанию разницы. Студентов, сделавших одну попытку по дисциплине, не учитывать. ) */
+
+SELECT name_student,
+       name_subject, 
+       DATEDIFF(MAX(date_attempt), MIN(date_attempt)) AS Интервал
+  FROM subject 
+       JOIN attempt USING (subject_id)
+       JOIN student USING (student_id)
+ GROUP BY name_student, name_subject
+ HAVING COUNT(attempt_id) > 1 
+ ORDER BY 3; 
