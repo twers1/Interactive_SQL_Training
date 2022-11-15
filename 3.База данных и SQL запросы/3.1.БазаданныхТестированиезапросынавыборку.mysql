@@ -39,3 +39,53 @@ SELECT name_student,
  GROUP BY name_student, name_subject
  HAVING COUNT(attempt_id) > 1 
  ORDER BY 3; 
+
+/* 5 задание(Студенты могут тестироваться по одной или нескольким дисциплинам (не обязательно по всем). Вывести дисциплину и количество уникальных студентов (столбец назвать Количество), которые по ней проходили тестирование . Информацию отсортировать сначала по убыванию количества, а потом по названию дисциплины. В результат включить и дисциплины, тестирование по которым студенты еще не проходили, в этом случае указать количество студентов 0.) */
+
+SELECT name_subject, COUNT(Distinct(st.st)) as Количество
+FROM (SELECT name_subject, student_id as st
+FROM subject LEFT JOIN attempt USING(subject_id)) as st
+GROUP BY name_subject
+ORDER BY 2 DESC, 1;
+
+/* 6 задание(Случайным образом отберите 3 вопроса по дисциплине «Основы баз данных». В результат включите столбцы question_id и name_question.) */
+
+SELECT question_id, name_question
+FROM subject INNER JOIN question USING(subject_id)
+WHERE subject.subject_id = 2
+ORDER BY RAND()
+LIMIT 3;
+
+
+/* 7 задание(Вывести вопросы, которые были включены в тест для Семенова Ивана по дисциплине «Основы SQL» 2020-05-17  (значение attempt_id для этой попытки равно 7). Указать, какой ответ дал студент и правильный он или нет (вывести Верно или Неверно). В результат включить вопрос, ответ и вычисляемый столбец  Результат.) */
+
+SELECT name_question,  name_answer, IF(is_correct = 0, "Неверно", "Верно") AS Результат
+FROM question
+    INNER JOIN testing USING(question_id)
+    INNER JOIN answer USING(answer_id )
+WHERE attempt_id = 7;
+
+/* 8 задание(Посчитать результаты тестирования. Результат попытки вычислить как количество правильных ответов, деленное на 3 (количество вопросов в каждой попытке) и умноженное на 100. Результат округлить до двух знаков после запятой. Вывести фамилию студента, название предмета, дату и результат. Последний столбец назвать Результат. Информацию отсортировать сначала по фамилии студента, потом по убыванию даты попытки.) */
+
+SELECT name_student, name_subject, date_attempt,  ROUND((SUM(answer.is_correct)/ 3) * 100 ,2) AS Результат
+FROM attempt
+    JOIN student USING(student_id)
+    JOIN subject USING(subject_id)
+    JOIN testing USING(attempt_id)
+    JOIN answer USING(answer_id)
+GROUP BY name_student, name_subject, date_attempt 
+ORDER BY name_student ASC, date_attempt DESC;
+
+/* 9 задание(Для каждого вопроса вывести процент успешных решений, то есть отношение количества верных ответов к общему количеству ответов, значение округлить до 2-х знаков после запятой. Также вывести название предмета, к которому относится вопрос, и общее количество ответов на этот вопрос. В результат включить название дисциплины, вопросы по ней (столбец назвать Вопрос), а также два вычисляемых столбца Всего_ответов и Успешность. Информацию отсортировать сначала по названию дисциплины, потом по убыванию успешности, а потом по тексту вопроса в алфавитном порядке.) */
+
+
+SELECT name_subject, 
+       CONCAT(LEFT(name_question, 30), '...') AS Вопрос,  -- Функция CONCAT предназначена для сложения строк при выборке из базы данных. Строками обычно выступают поля таблиц.
+       COUNT(t.answer_id) AS Всего_ответов, 
+       ROUND(SUM(is_correct) / COUNT(t.answer_id) * 100, 2) AS Успешность
+  FROM subject
+       JOIN question USING(subject_id)
+       JOIN testing t USING(question_id)
+       LEFT JOIN answer a USING(answer_id)
+ GROUP BY 1, 2
+ ORDER BY 1, 4 DESC, 2;
